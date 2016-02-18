@@ -1,0 +1,107 @@
+<inkscape-extension>
+  <_name>Custom iterator</_name>
+  <id>com.smanohar.inkscape-custom-iterator</id>
+  <dependency type="executable" location="extensions">sanjay_custom_iterator.py</dependency>
+  <dependency type="executable" location="extensions">inkex.py</dependency>
+
+  <param name="tab" type="notebook">
+    <page name="controls" _gui-text="Controls">
+      <param name="what" type="string" _gui-text="(leave blank to use selection) for i,n in XPATH ">//svg:*</param>
+      <param name="verb1" type="string" _gui-text="Python 1:"></param>
+      <param name="verb2" type="string" _gui-text="Python 2:"></param>
+      <param name="verb3" type="string" _gui-text="Python 3:"></param>
+      <param name="verb4" type="string" _gui-text="Python 4:"></param>
+      <param name="verb5" type="string" _gui-text="Python 5:"></param>
+      <param name="doverb1" type="boolean" _gui-text="Execute Python 1">1</param>
+      <param name="doverb2" type="boolean" _gui-text="Execute Python 2">1</param>
+      <param name="doverb3" type="boolean" _gui-text="Execute Python 3">1</param>
+      <param name="doverb4" type="boolean" _gui-text="Execute Python 4">1</param>
+      <param name="doverb5" type="boolean" _gui-text="Execute Python 5">1</param>
+      <param name="variablex" type="int" appearance="full" min="0" max="100" indent="0" _gui-text="Variable 'x'">50</param>
+      <param name="ignore_errors" type="boolean" _gui-text="Skip over errors"></param>
+      <param name="decode_escapes" type="boolean" _gui-text="Process escapes in python command, e.g \n, \t"></param>
+      <param name="calculate_d" type="boolean" _gui-text="Parse path coordinates i.e. d='m 0,0 z' and p=[['m',(0,0)]], using simplepath.parsePath"></param>
+    </page>
+    <page name="help" _gui-text="Help">
+      <param name="help_text" type="description">
+Execute python code on each node in the svg document. These properties can be read or written to. The variables for each node are
+    s  = style dictionary e.g. s['fill']
+    n  = node  -- has properties of the xpath element
+    a  = attribute object, for convenience:  a.id == n.get('id')
+    p  = path array (if checkbox ticked).
+Note that changes in "a", "s" and "p" override any changes made by "n.set()"
+Example: 
+    s['fill']='#ff0000'    # set object fill to red
+You can use functions from math, inkex, simplestyle, simplepath, simpletransform, pturtle, beziermisc as listed in the inkscape "Python modules for extensions". 
+
+For SVG help see http://www.w3.org/TR/SVG/styling.html
+and note that you can see the XML under "Edit/XML editor"
+
+For help with element trees, see  https://docs.python.org/2/library/xml.etree.elementtree.html.
+
+Sanjay Manohar 2014   www.smanohar.com
+      </param>
+    </page>
+    <page name="commands" _gui-text="Commands">
+      <param name="commands_text" type="description">
+Common Python commands:
+  n.get('property')   # get the svg node's property
+  n.set('property',value) # set the svg node's property
+  a.property  # another way to get the svg node's property
+  applyTransformToNode(matrix, n)        # apply matrix to a node
+  matrix = parseTransform( a.transform ) # get matrix from node
+  s['stroke'] # style attributes e.g. fill, fill-opacity, marker
+  s['fill']=formatColoria(128,192,255) # fill color
+  p[index][0] # command letter 'M' 'L' 'C' 'Q' 'Z'    
+  p[index][1] # =(x,y) path coords
+  n.getparent().remove(n)  # delete each object
+  computeBBox([n]) # bounding box of object (xmin,xMax,ymin,yMax)
+  print a.id    # prints object id's to "stderr" (output dialog)
+  a.special='1' # set novel property - can search for later
+      </param>
+    </page>
+    <page name="xpath" _gui-text="Xpath">
+      <param name="xpath_text" type="description">
+In the xpath, use 's:' or 'svg:' as the namespace prefix. For help on syntax see http://www.w3schools.com/xpath/xpath_syntax.asp
+Examples:
+  //s:path : all paths in document
+  /s:svg/s:g/s:g/*  : all children of the first-level groups, starting at the root svg document
+  //s:linearGradient : all linear gradients
+  //s:*[not(contains(@style,'#ff0000'))] : all items without red in the style
+  //s:path/.. | //s:path/../..   : all parents of paths, and their parents too
+  //s:g[count(child::*)&lt;3]  : select all groups that have fewer than 3 children
+  //s:g[@transform]  : all groups that have transforms
+  //s:*[@id='g108']/*  : all children of group named "g108"
+  //s:*[contains(@d,'z')]  : all closed paths
+  //s:*[contains(@d,'c') or contains(@d,'a')]  : all curved paths
+  //s:*[*[text()[string-length()>3]]]   : any text objects > 3 chars
+      </param>
+    </page>
+    <page name="examples" _gui-text="Examples">
+      <param name="examples_text" type="description">
+  if len(p)==3: s['stroke-dasharray']='0.5,1'  # make all paths with 3 points dashed
+      
+  if 'tspan' in n.tag: set('x',a.x.split()[0])    # for all "tspan" elements, remove extra x-values -i.e. remove kerning
+
+  etree.SubElement(n.getparent(), addNS('rect','svg'), {'x':a.x, 'y':a.y, 'width':'5','height':'5', 'transform':a.transform, 'style':'fill:#ffff00'}) # Create a new rect, at the same location as each object, size 5x5
+  
+  for i in p:\n  if len(i)>1: i[1][1]+=x*sin(i[1][0]/10.)\n # deform a curve by a sine wave (check "process escapes"). Amplitude controlled by slider.
+  
+  c=n\nfor i in range(18):\n c=copy.deepcopy(c)\n applyTransformToNode(parseTransform('rotate(20)'),c)\n self.current_layer.append(c) # copy object 18 times rotated around origin
+  
+  x=computeBBox([n])\ns['stroke']=formatColorfa([min(300,x[1]-x[0])/300,0,0]) # colour objects by their width!
+  
+      </param>
+    </page>
+
+  </param>
+  <effect>
+    <object-type>all</object-type>
+    <effects-menu>
+       <submenu _name="Sanjay"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">sanjay_custom_iterator.py</command>
+  </script>
+</inkscape-extension>

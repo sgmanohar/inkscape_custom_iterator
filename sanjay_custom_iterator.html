@@ -1,0 +1,64 @@
+<html>
+<h1>Python quick-scripting extension for Inkscape</h1>
+
+I thought I should share my Inkscape plugin. 
+<BR>
+It's designed for users who are also programmers. It's useful for minor automation.
+It allows running very short Python script fragments on the fly.
+It works by calling "exec()" on your line of code, with a variable "n" set to the current node.
+
+<BR><BR>
+It has two components: 
+<OL><LI>
+ an XPATH query, which iterates over a set of objects (or iterate over the current selection)
+</LI><LI>
+ a short fragment of Python, which you enter, and is executed for each object.
+</LI></OL>
+
+I've given a few examples of how to use XPath to do 'and', 'not', 'intersection' searches. It is quite powerful but not intuitive. If you're not familiar with XPath, you can do all of those things from within the python commands. The XPath requires namespaces on every tag, so you can use the original "svg:" namespace or the abbreviation "s:". 
+
+<BR><BR> 
+The 5 lines of python are concatenated into a short script. You can actually have more lines if you use "\n" in your scripts and turn on "process escapes in python command". You can toggle each line on and off, to switch individual commands. 
+<UL><LI>
+If "Skip over errors" is selected, then it will execute your code on each node, committing only those nodes which didn't give an error. If it is not selected, then the script stops, displays the error, and does not commit any changes.
+</LI><LI>
+If "Process escapes in python" is on, then each line can store multi-line commands, if you use "\n" and/or "\t".
+</LI><LI>
+Parse path coordinates will examine the "d" attribute of any path, and call "parsePath". The result is stored in "p", and is an array of path nodes. Each node is ['c', (x,y)], representing the command letter, and absolute coordinates. You can edit "p". 
+</LI><LI>
+You have access to all functions in 
+ <UL><LI>  "math" (sin, cos, tan, atan, rand, floor etc.)
+ </LI><LI> "inkex" (etree, addNS, unittouu, uniqueId, createGuide, getNamedView etc)
+ </LI><LI> "simplepath" (translatePath, scalePath, rotatePath), 
+ </LI><LI> "simpletransform" (computeBBox)
+ </LI><LI> "simplestyle" (svgcolors dictionary, parseColor, formatColoria, formatColor3i, formatColorfa, formatColor3f, isColor), 
+ </LI><LI> "pturtle", and "bezmisc". 
+ </LI><LI> Additionally, 'self' is defined (with properties such as 'selected', 'current_layer', 'view_center', 'document', 'original_document'). 
+ </LI><LI> You can also use "print" commands for debugging, since stdout is mapped to the error dialog that pops up after the script completes. 
+ </LI></UL>
+Some examples of these commands are given under "Commands".
+<BR><BR>
+So, it's basically quite a lot more powerful than the built-in find/replace tool. And quicker than writing your own extension. 
+There is brief documentation in the dialog box. 
+<BR><BR>
+<h3><a href='http://www.smanohar.com/inkscape.php'> Download from www.smanohar.com </a></h3>
+Sanjay Manohar 2014 - free to use.
+<br>
+
+<image src="sanjay_custom_iterator.png">
+<h3>
+Known issues:
+</h3>
+<ol><li>
+ Inkscape 48.3 seems to break in Ubuntu, but works well on Windows; 48.4 should be fine.
+</li><li>
+ If "parse path" is on, changes made by calls to "n.set('d',something)" are discarded. Path changes should be made only to "p", in this case.
+</li><li>
+ Currently, if changes are made to the style using 's', then any changes to the style made by calls to "n.set('style',something)" are discarded. It is therefore best to make style changes to "s".
+</li><li>
+ Attribute deletions from "a"  are not processed at present.
+</li><li>
+ Pure style deletions from "s" are not processed at present. 
+</li></ol>
+ 
+</HTML>
